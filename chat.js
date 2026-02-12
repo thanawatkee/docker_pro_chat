@@ -7,8 +7,8 @@ const status = document.getElementById('status');
 const modelSelect = document.getElementById('modelSelect');
 const errorMessage = document.getElementById('errorMessage');
 
-const OLLAMA_API_URL = 'http://localhost:11434/api/chat';
-const OLLAMA_TAGS_URL = 'http://localhost:11434/api/tags';
+const OLLAMA_API_URL = 'http://127.0.0.1:11434/api/chat';
+const OLLAMA_TAGS_URL = 'http://127.0.0.1:11434/api/tags';
 
 let conversationHistory = [];
 let isProcessing = false;
@@ -22,30 +22,30 @@ messageInput.addEventListener('keypress', (e) => {
     }
 });
 
-// ตรวจสอบสถานะ Ollama เมื่อโหลดหน้า
+// ยตรรยจรรยบรยถร’ยนร Ollama ร รร—รจรรขรร…ยดรยนรฉร’
 window.addEventListener('load', async () => {
     await checkOllamaStatus();
     await loadAvailableModels();
 });
 
-// ตรวจสอบว่า Ollama ทำงานหรือไม่
+// ยตรรยจรรยบรรจร’ Ollama ยทร“ยงร’ยนรรร—รรครรจ
 async function checkOllamaStatus() {
     try {
         const response = await fetch(OLLAMA_TAGS_URL);
         if (response.ok) {
-            statusText.textContent = '?? เชื่อมต่อแล้ว';
+            statusText.textContent = '?? ร ยชร—รจรรยตรจรรกร…รฉร';
             status.className = 'status online';
             return true;
         }
     } catch (error) {
-        statusText.textContent = '?? ไม่สามารถเชื่อมต่อ Ollama';
+        statusText.textContent = '?? รครรจรร’รร’รยถร ยชร—รจรรยตรจร Ollama';
         status.className = 'status offline';
-        showError('ไม่สามารถเชื่อมต่อกับ Ollama กรุณาตรวจสอบว่า Ollama ทำงานอยู่');
+        showError('รครรจรร’รร’รยถร ยชร—รจรรยตรจรยกร‘ยบ Ollama ยกรรยณร’ยตรรยจรรยบรรจร’ Ollama ยทร“ยงร’ยนรรรรจ');
         return false;
     }
 }
 
-// โหลด models ที่มี
+// รขรร…ยด models ยทร•รจรร•
 async function loadAvailableModels() {
     try {
         const response = await fetch(OLLAMA_TAGS_URL);
@@ -66,23 +66,23 @@ async function loadAvailableModels() {
     }
 }
 
-// ส่งข้อความ
+// รรจยงยขรฉรยครร’ร
 async function sendMessage() {
     const message = messageInput.value.trim();
     
     if (!message || isProcessing) return;
     
-    // เพิ่มข้อความของ user
+    // ร ยพร”รจรยขรฉรยครร’รยขรยง user
     addMessage(message, 'user');
     messageInput.value = '';
     
-    // เก็บประวัติการสนทนา
+    // ร ยกรงยบยปรรรร‘ยตร”ยกร’รรยนยทยนร’
     conversationHistory.push({
         role: 'user',
         content: message
     });
     
-    // แสดง typing indicator
+    // รกรยดยง typing indicator
     isProcessing = true;
     sendBtn.disabled = true;
     typingIndicator.style.display = 'block';
@@ -91,7 +91,7 @@ async function sendMessage() {
     try {
         const selectedModel = modelSelect.value;
         
-        // เรียก Ollama API แบบ streaming
+        // ร รร•รยก Ollama API รกยบยบ streaming
         const response = await fetch(OLLAMA_API_URL, {
             method: 'POST',
             headers: {
@@ -108,14 +108,14 @@ async function sendMessage() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        // ซ่อน typing indicator
+        // ยซรจรยน typing indicator
         typingIndicator.style.display = 'none';
         
-        // สร้างข้อความของ bot
+        // รรรฉร’ยงยขรฉรยครร’รยขรยง bot
         const botMessageElement = addMessage('', 'bot');
         const messageContent = botMessageElement.querySelector('.message-content');
         
-        // อ่าน response แบบ stream
+        // รรจร’ยน response รกยบยบ stream
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let botResponse = '';
@@ -137,13 +137,13 @@ async function sendMessage() {
                             scrollToBottom();
                         }
                     } catch (e) {
-                        // ข้าม line ที่ parse ไม่ได้
+                        // ยขรฉร’ร line ยทร•รจ parse รครรจรคยดรฉ
                     }
                 }
             }
         }
         
-        // เก็บคำตอบของ bot ในประวัติ
+        // ร ยกรงยบยคร“ยตรยบยขรยง bot รฃยนยปรรรร‘ยตร”
         conversationHistory.push({
             role: 'assistant',
             content: botResponse
@@ -153,10 +153,10 @@ async function sendMessage() {
         console.error('Error:', error);
         typingIndicator.style.display = 'none';
         
-        showError('เกิดข้อผิดพลาด: ' + error.message);
+        showError('ร ยกร”ยดยขรฉรยผร”ยดยพร…ร’ยด: ' + error.message);
         
-        // เพิ่มข้อความ error
-        addMessage('ขอโทษครับ เกิดข้อผิดพลาดในการประมวลผล กรุณาลองใหม่อีกครั้ง', 'bot');
+        // ร ยพร”รจรยขรฉรยครร’ร error
+        addMessage('ยขรรขยทรยครร‘ยบ ร ยกร”ยดยขรฉรยผร”ยดยพร…ร’ยดรฃยนยกร’รยปรรรรร…ยผร… ยกรรยณร’ร…รยงรฃรรรจรร•ยกยครร‘รฉยง', 'bot');
     } finally {
         isProcessing = false;
         sendBtn.disabled = false;
@@ -164,7 +164,7 @@ async function sendMessage() {
     }
 }
 
-// เพิ่มข้อความในแชท
+// ร ยพร”รจรยขรฉรยครร’รรฃยนรกยชยท
 function addMessage(text, sender) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
@@ -186,12 +186,12 @@ function addMessage(text, sender) {
     return messageDiv;
 }
 
-// เลื่อนไปล่างสุด
+// ร ร…ร—รจรยนรคยปร…รจร’ยงรรยด
 function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// แสดง error
+// รกรยดยง error
 function showError(message) {
     errorMessage.textContent = message;
     errorMessage.style.display = 'block';
@@ -201,9 +201,10 @@ function showError(message) {
     }, 5000);
 }
 
-// เคลียร์ประวัติการสนทนา (เพิ่มปุ่มถ้าต้องการ)
+// ร ยคร…ร•รรรฌยปรรรร‘ยตร”ยกร’รรยนยทยนร’ (ร ยพร”รจรยปรรจรยถรฉร’ยตรฉรยงยกร’ร)
 function clearChat() {
     conversationHistory = [];
     chatMessages.innerHTML = '';
-    addMessage('สวัสดีครับ! ผมพร้อมช่วยเหลือคุณแล้ว มีอะไรให้ช่วยไหมครับ?', 'bot');
+    addMessage('รรร‘รยดร•ยครร‘ยบ! ยผรยพรรฉรรยชรจรรร รร…ร—รยครยณรกร…รฉร รร•รรรครรฃรรฉยชรจรรรครรยครร‘ยบ?', 'bot');
 }
+
