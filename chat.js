@@ -6,15 +6,18 @@ const statusText = document.getElementById('statusText');
 const status = document.getElementById('status');
 const modelSelect = document.getElementById('modelSelect');
 const errorMessage = document.getElementById('errorMessage');
+const clearBtn = document.getElementById('clearBtn');
 
-const OLLAMA_API_URL = 'http://127.0.0.1:11434/api/chat';
-const OLLAMA_TAGS_URL = 'http://127.0.0.1:11434/api/tags';
+const OLLAMA_API_URL = 'http://localhost:11434/api/chat';
+const OLLAMA_TAGS_URL = 'http://localhost:11434/api/tags';
 
 let conversationHistory = [];
 let isProcessing = false;
 
 // Event Listeners
 sendBtn.addEventListener('click', sendMessage);
+clearBtn.addEventListener('click', clearChat);
+
 messageInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -22,30 +25,30 @@ messageInput.addEventListener('keypress', (e) => {
     }
 });
 
-// µÃÇ¨ÊÍºÊ¶Ò¹Ð Ollama àÁ×èÍâËÅ´Ë¹éÒ
+// Check Ollama status on page load
 window.addEventListener('load', async () => {
     await checkOllamaStatus();
     await loadAvailableModels();
 });
 
-// µÃÇ¨ÊÍºÇèÒ Ollama ·Ó§Ò¹ËÃ×ÍäÁè
+// Check if Ollama is running
 async function checkOllamaStatus() {
     try {
         const response = await fetch(OLLAMA_TAGS_URL);
         if (response.ok) {
-            statusText.textContent = '?? àª×èÍÁµèÍáÅéÇ';
+            statusText.textContent = '?? Connected';
             status.className = 'status online';
             return true;
         }
     } catch (error) {
-        statusText.textContent = '?? äÁèÊÒÁÒÃ¶àª×èÍÁµèÍ Ollama';
+        statusText.textContent = '?? Disconnected';
         status.className = 'status offline';
-        showError('äÁèÊÒÁÒÃ¶àª×èÍÁµèÍ¡Ñº Ollama ¡ÃØ³ÒµÃÇ¨ÊÍºÇèÒ Ollama ·Ó§Ò¹ÍÂÙè');
+        showError('Cannot connect to Ollama. Please make sure Ollama is running.');
         return false;
     }
 }
 
-// âËÅ´ models ·ÕèÁÕ
+// Load available models
 async function loadAvailableModels() {
     try {
         const response = await fetch(OLLAMA_TAGS_URL);
@@ -66,23 +69,23 @@ async function loadAvailableModels() {
     }
 }
 
-// Êè§¢éÍ¤ÇÒÁ
+// Send message
 async function sendMessage() {
     const message = messageInput.value.trim();
     
     if (!message || isProcessing) return;
     
-    // à¾ÔèÁ¢éÍ¤ÇÒÁ¢Í§ user
+    // Add user message
     addMessage(message, 'user');
     messageInput.value = '';
     
-    // à¡çº»ÃÐÇÑµÔ¡ÒÃÊ¹·¹Ò
+    // Store conversation history
     conversationHistory.push({
         role: 'user',
         content: message
     });
     
-    // áÊ´§ typing indicator
+    // Show typing indicator
     isProcessing = true;
     sendBtn.disabled = true;
     typingIndicator.style.display = 'block';
@@ -91,7 +94,7 @@ async function sendMessage() {
     try {
         const selectedModel = modelSelect.value;
         
-        // àÃÕÂ¡ Ollama API áºº streaming
+        // Call Ollama API with streaming
         const response = await fetch(OLLAMA_API_URL, {
             method: 'POST',
             headers: {
@@ -108,14 +111,14 @@ async function sendMessage() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        // «èÍ¹ typing indicator
+        // Hide typing indicator
         typingIndicator.style.display = 'none';
         
-        // ÊÃéÒ§¢éÍ¤ÇÒÁ¢Í§ bot
+        // Create bot message
         const botMessageElement = addMessage('', 'bot');
         const messageContent = botMessageElement.querySelector('.message-content');
         
-        // ÍèÒ¹ response áºº stream
+        // Read streaming response
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let botResponse = '';
@@ -137,13 +140,13 @@ async function sendMessage() {
                             scrollToBottom();
                         }
                     } catch (e) {
-                        // ¢éÒÁ line ·Õè parse äÁèä´é
+                        // Skip lines that can't be parsed
                     }
                 }
             }
         }
         
-        // à¡çº¤ÓµÍº¢Í§ bot ã¹»ÃÐÇÑµÔ
+        // Store bot response in history
         conversationHistory.push({
             role: 'assistant',
             content: botResponse
@@ -153,10 +156,10 @@ async function sendMessage() {
         console.error('Error:', error);
         typingIndicator.style.display = 'none';
         
-        showError('à¡Ô´¢éÍ¼Ô´¾ÅÒ´: ' + error.message);
+        showError('Error: ' + error.message);
         
-        // à¾ÔèÁ¢éÍ¤ÇÒÁ error
-        addMessage('¢Íâ·É¤ÃÑº à¡Ô´¢éÍ¼Ô´¾ÅÒ´ã¹¡ÒÃ»ÃÐÁÇÅ¼Å ¡ÃØ³ÒÅÍ§ãËÁèÍÕ¡¤ÃÑé§', 'bot');
+        // Add error message
+        addMessage('Sorry, an error occurred while processing your request. Please try again.', 'bot');
     } finally {
         isProcessing = false;
         sendBtn.disabled = false;
@@ -164,7 +167,7 @@ async function sendMessage() {
     }
 }
 
-// à¾ÔèÁ¢éÍ¤ÇÒÁã¹áª·
+// Add message to chat
 function addMessage(text, sender) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
@@ -186,12 +189,12 @@ function addMessage(text, sender) {
     return messageDiv;
 }
 
-// àÅ×èÍ¹ä»ÅèÒ§ÊØ´
+// Scroll to bottom
 function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// áÊ´§ error
+// Show error message
 function showError(message) {
     errorMessage.textContent = message;
     errorMessage.style.display = 'block';
@@ -201,10 +204,17 @@ function showError(message) {
     }, 5000);
 }
 
-// à¤ÅÕÂÃì»ÃÐÇÑµÔ¡ÒÃÊ¹·¹Ò (à¾ÔèÁ»ØèÁ¶éÒµéÍ§¡ÒÃ)
+// Clear chat history
 function clearChat() {
-    conversationHistory = [];
-    chatMessages.innerHTML = '';
-    addMessage('ÊÇÑÊ´Õ¤ÃÑº! ¼Á¾ÃéÍÁªèÇÂàËÅ×Í¤Ø³áÅéÇ ÁÕÍÐäÃãËéªèÇÂäËÁ¤ÃÑº?', 'bot');
+    if (confirm('Are you sure you want to clear the chat history?')) {
+        conversationHistory = [];
+        chatMessages.innerHTML = '';
+        addMessage('Hello! I\'m ready to help you. How can I assist you today?', 'bot');
+    }
 }
 
+// Auto-resize textarea (if you want to change input to textarea)
+function autoResize(element) {
+    element.style.height = 'auto';
+    element.style.height = element.scrollHeight + 'px';
+}
