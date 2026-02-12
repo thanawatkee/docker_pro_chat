@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,9 +46,29 @@
             margin-bottom: 5px;
         }
         
+        .header-actions {
+            margin-top: 10px;
+        }
+        
+        .clear-btn {
+            padding: 5px 15px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+        
+        .clear-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
         .status {
             font-size: 0.9em;
             opacity: 0.9;
+            margin-top: 5px;
         }
         
         .status.online {
@@ -94,6 +114,7 @@
             border-radius: 15px;
             word-wrap: break-word;
             line-height: 1.5;
+            white-space: pre-wrap;
         }
         
         .message.user .message-content {
@@ -119,6 +140,7 @@
             justify-content: center;
             font-size: 1.2em;
             margin: 0 10px;
+            flex-shrink: 0;
         }
         
         .message.user .message-avatar {
@@ -138,6 +160,7 @@
             border-bottom-left-radius: 5px;
             width: fit-content;
             margin-left: 45px;
+            margin-bottom: 15px;
         }
         
         .typing-indicator span {
@@ -186,6 +209,7 @@
             font-size: 14px;
             outline: none;
             transition: border-color 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         #messageInput:focus {
@@ -202,6 +226,7 @@
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+            white-space: nowrap;
         }
         
         #sendBtn:hover:not(:disabled) {
@@ -230,6 +255,7 @@
             border-radius: 5px;
             outline: none;
             cursor: pointer;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         .error-message {
@@ -240,6 +266,7 @@
             border-radius: 5px;
             margin: 10px 20px;
             display: none;
+            font-size: 0.9em;
         }
         
         /* Scrollbar Styling */
@@ -259,6 +286,40 @@
         .chat-messages::-webkit-scrollbar-thumb:hover {
             background: #764ba2;
         }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        /* Responsive */
+        @media (max-height: 700px) {
+            .chat-container {
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .chat-container {
+                border-radius: 10px;
+                height: calc(100vh - 20px);
+            }
+            
+            .message-content {
+                max-width: 80%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -266,7 +327,10 @@
         <div class="chat-header">
             <h1>?? Chat with Ollama</h1>
             <div class="status" id="status">
-                <span id="statusText">กำลังตรวจสอบ...</span>
+                <span id="statusText">Checking connection...</span>
+            </div>
+            <div class="header-actions">
+                <button class="clear-btn" id="clearBtn">??? Clear Chat</button>
             </div>
         </div>
         
@@ -287,7 +351,7 @@
             <div class="message bot">
                 <div class="message-avatar">??</div>
                 <div class="message-content">
-                    สวัสดีครับ! ผมพร้อมช่วยเหลือคุณแล้ว มีอะไรให้ช่วยไหมครับ?
+                    Hello! I'm ready to help you. How can I assist you today?
                 </div>
             </div>
         </div>
@@ -303,10 +367,10 @@
                 <input 
                     type="text" 
                     id="messageInput" 
-                    placeholder="พิมพ์ข้อความ..." 
+                    placeholder="Type your message..." 
                     autocomplete="off"
                 >
-                <button id="sendBtn">ส่ง ??</button>
+                <button id="sendBtn">Send ??</button>
             </div>
         </div>
     </div>
